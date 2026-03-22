@@ -37,14 +37,6 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            def appName = "FluentEcho"
-            def versionName = variant.versionName
-            def buildType = variant.buildType.name
-            outputFileName = "${appName}-${versionName}-${buildType}.apk"
-        }
-    }
 }
 
 flutter {
