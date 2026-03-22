@@ -20,6 +20,7 @@ android/app/debug/
 android/app/profile/
 android/app/release/
 android/captures/
+android/app/.cxx/
 android/local.properties
 android/key.properties
 *.keystore
