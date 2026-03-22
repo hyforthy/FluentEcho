@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.englishlearning.english_learning"
+    namespace = "com.fluentecho.fluentecho"
     compileSdk = 36
     buildToolsVersion = "36.1.0"
     ndkVersion = flutter.ndkVersion
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.englishlearning.english_learning"
+        applicationId = "com.fluentecho.fluentecho"
         minSdk = flutter.minSdkVersion
         targetSdk = 34
         versionCode = flutter.versionCode
