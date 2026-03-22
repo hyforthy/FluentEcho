@@ -4,6 +4,14 @@
 
 ---
 
+## 截图
+
+| 对话 & AI 优化 | 笔记本列表 |
+|:-:|:-:|
+| ![对话界面](docs/screenshots/conversation.jpg) | ![笔记本列表](docs/screenshots/note_list.jpg) |
+
+---
+
 ## 功能亮点
 
 | 功能 | 说明 |
