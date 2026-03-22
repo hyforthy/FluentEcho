@@ -1,0 +1,77 @@
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Lock files — keep pubspec.lock & ios/Podfile.lock for reproducibility
+*.lock
+!pubspec.lock
+!ios/Podfile.lock
+
+# Android
+android/build/
+android/app/build/
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/captures/
+android/local.properties
+android/key.properties
+*.keystore
+*.jks
+
+# iOS
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Pods/
+**/*.xcuserdata/
+**/*.xcuserstate
+**/*.xcscheme
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Coverage
+coverage/
+lcov.info
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# Python (scripts/)
+__pycache__/
+*.pyc
+*.pyo
+
+# Claude Code
+.claude/
+
+# Env / secrets
+.env
+.env.*
+*.env

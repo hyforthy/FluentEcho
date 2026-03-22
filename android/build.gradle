@@ -1,0 +1,26 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    plugins.withId('com.android.library') {
+        project.android.compileSdkVersion(34)
+    }
+}
+
+// flutter_tts 4.x omits appcompat from its dependencies, but core-1.13.1
+// notification layouts reference appcompat styles/dimens. Inject it here.
+project(':flutter_tts') {
+    afterEvaluate {
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.7.0'
+        }
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete layout.buildDirectory
+}

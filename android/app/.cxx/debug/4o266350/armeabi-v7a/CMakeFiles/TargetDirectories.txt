@@ -1,0 +1,2 @@
+D:/Workplace/doForFuture/claude/projects/english/android/app/.cxx/debug/4o266350/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Workplace/doForFuture/claude/projects/english/android/app/.cxx/debug/4o266350/armeabi-v7a/CMakeFiles/rebuild_cache.dir

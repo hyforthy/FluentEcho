@@ -1,0 +1,2 @@
+D:/Workplace/doForFuture/claude/projects/english/android/app/.cxx/release/132t6q3c/x86_64/CMakeFiles/edit_cache.dir
+D:/Workplace/doForFuture/claude/projects/english/android/app/.cxx/release/132t6q3c/x86_64/CMakeFiles/rebuild_cache.dir
