@@ -1,4 +1,4 @@
-package com.englishlearning.english_learning
+package com.fluentecho.fluentecho
 
 import io.flutter.embedding.android.FlutterActivity
 
