@@ -1,5 +1,5 @@
-name: english_learning
-description: 英语学习记录应用 - 智能多端学习助手
+name: FluentEcho
+description: AI英语碎片化学习助理
 version: 1.0.0+1
 
 environment:
