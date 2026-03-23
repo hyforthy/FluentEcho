@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../../core/database/app_database.dart';
 import '../../../shared/theme/app_colors.dart';
 import '../../../shared/theme/app_spacing.dart';
 import '../../../shared/theme/app_typography.dart';
@@ -10,6 +10,11 @@ import '../domain/entities/ai_service_config.dart';
 import 'providers/active_config_providers.dart';
 import '../../../shared/widgets/migration_banner.dart';
 import '../../input/presentation/providers/conversation_history_notifier.dart';
+
+final _appVersionProvider = FutureProvider<String>((ref) async {
+  final info = await PackageInfo.fromPlatform();
+  return info.version;
+});
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -90,11 +95,14 @@ class SettingsScreen extends ConsumerWidget {
 
           const _SectionHeader(title: '关于'),
           _SettingsCard(children: [
-            const _SettingsTile(
+            _SettingsTile(
               icon: Icons.info_outline,
               iconColor: AppColors.textSecondary,
               title: '版本',
-              trailing: Text('v1.0.0', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+              trailing: Text(
+                'v${ref.watch(_appVersionProvider).valueOrNull ?? '...'}',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              ),
               onTap: null,
             ),
             const _Divider(),
@@ -214,7 +222,7 @@ class _SettingsCard extends StatelessWidget {
         color: AppColors.surfaceWhite,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [BoxShadow(
-          color: Colors.black.withOpacity(0.04),
+          color: Colors.black.withValues(alpha: 0.04),
           blurRadius: 8,
           offset: const Offset(0, 2),
         )],
@@ -245,7 +253,7 @@ class _ProviderTile extends StatelessWidget {
       leading: Container(
         width: 36, height: 36,
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
+          color: iconColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: iconColor, size: 18),
@@ -283,7 +291,7 @@ class _SettingsTile extends StatelessWidget {
       leading: Container(
         width: 36, height: 36,
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
+          color: iconColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: iconColor, size: 18),
