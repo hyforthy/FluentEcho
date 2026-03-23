@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 FluentEcho App Icon Generator
-Design: deep navy → electric blue gradient, upward echo arcs (prominent),
-        ghost 'E' letterform (若隐若现), tech + English-learning feel.
+Design: solid blue background, upward echo arcs fading outward.
 
 Requirements: pip install Pillow numpy
 Usage:        python scripts/gen_icons.py
@@ -61,16 +60,14 @@ def rounded_rect_mask(w, h, r, draw):
 # ── drawing primitives ───────────────────────────────────────────────────────
 
 def make_bg(size):
-    """Diagonal gradient: very dark navy (bottom-right) → electric blue (top-left)."""
+    """Solid blue background (#0A6EFF)."""
     yg, xg = np.mgrid[0:size, 0:size]
     # t = 0 at bottom-right, 1 at top-left
     t = np.clip(((size - 1 - xg) * 0.38 + (size - 1 - yg) * 0.62) / (size - 1), 0, 1)
 
     stops = [
-        (0.00, np.array([4,  7, 26])),   # #04071A  deep space
-        (0.40, np.array([8, 22, 80])),   # #081650  dark navy
-        (0.72, np.array([14, 52, 150])), # #0E3496  navy-blue
-        (1.00, np.array([22, 78, 200])), # #164EC8  electric blue
+        (0.00, np.array([10, 110, 255])),  # #0A6EFF
+        (1.00, np.array([10, 110, 255])),  # #0A6EFF
     ]
 
     arr = np.zeros((size, size, 4), dtype=np.float64)
@@ -136,7 +133,7 @@ def echo_arc(base, cx, cy, r, color, stroke_w, opacity, blur):
 
 
 def draw_E_ghost(base, cx, cy, height, width, stroke, color):
-    """若隐若现的 E 字母：大号、柔和发光、与背景自然融合。"""
+    """Subtle ghost 'E' letterform blended into the background."""
     left   = cx - width // 2
     right  = cx + width // 2
     top    = cy - height // 2
@@ -144,27 +141,22 @@ def draw_E_ghost(base, cx, cy, height, width, stroke, color):
     mid    = (top + bottom) // 2
     s      = stroke
 
-    # 在独立图层上用实色画 E
+    # Draw solid E on a separate layer
     e_layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(e_layer)
     fill = (*color, 255)
-    d.rectangle([left,          top,         left + s,               bottom      ], fill=fill)  # 竖笔
-    d.rectangle([left,          top,         right,                  top + s     ], fill=fill)  # 上横
-    d.rectangle([left, mid - s//2, left + int(width * 0.78), mid + s//2         ], fill=fill)  # 中横（稍短）
-    d.rectangle([left,          bottom - s,  right,                  bottom      ], fill=fill)  # 下横
+    d.rectangle([left,          top,         left + s,               bottom      ], fill=fill)  # vertical stroke
+    d.rectangle([left,          top,         right,                  top + s     ], fill=fill)  # top bar
+    d.rectangle([left, mid - s//2, left + int(width * 0.78), mid + s//2         ], fill=fill)  # middle bar (slightly shorter)
+    d.rectangle([left,          bottom - s,  right,                  bottom      ], fill=fill)  # bottom bar
 
-    # 柔和光晕层（高斯模糊 + 降低透明度到 ~22%）
-    glow_arr = np.array(e_layer.filter(ImageFilter.GaussianBlur(28)), dtype=np.float32)
-    glow_arr[:, :, 3] = np.clip(glow_arr[:, :, 3] * 0.24, 0, 255)
-    glow = Image.fromarray(glow_arr.astype(np.uint8), "RGBA")
+    # Soft blur to make the E a gentle shape impression
+    soft = e_layer.filter(ImageFilter.GaussianBlur(8))
+    soft_arr = np.array(soft, dtype=np.float32)
+    soft_arr[:, :, 3] = np.clip(soft_arr[:, :, 3] * 0.22, 0, 255)
+    soft = Image.fromarray(soft_arr.astype(np.uint8), "RGBA")
 
-    # 锐利轮廓层（降低透明度到 ~13%）
-    sharp_arr = np.array(e_layer, dtype=np.float32)
-    sharp_arr[:, :, 3] = np.clip(sharp_arr[:, :, 3] * 0.13, 0, 255)
-    sharp = Image.fromarray(sharp_arr.astype(np.uint8), "RGBA")
-
-    base = Image.alpha_composite(base, glow)
-    base = Image.alpha_composite(base, sharp)
+    base = Image.alpha_composite(base, soft)
     return base
 
 # ── composition ──────────────────────────────────────────────────────────────
@@ -172,41 +164,30 @@ def draw_E_ghost(base, cx, cy, height, width, stroke, color):
 def create_icon(size=SOURCE_SIZE):
     s = size / SOURCE_SIZE
 
-    # 1. 背景
+    # 1. Background
     img = make_bg(size)
 
-    # 2. 弧线发射中心（图标下方偏外，让弧线从底部扇形展开）
+    # 2. Arc emission center (below the icon, arcs fan upward from the bottom)
     arc_cx = int(512 * s)
     arc_cy = int(840 * s)
 
-    # 3. 环境光晕：在弧线中心附近制造蓝色辉光
-    img = radial_glow(img, arc_cx, arc_cy, int(520*s), hex_rgb("#0E48CC"), 0.55)
-    img = radial_glow(img, arc_cx, int(380*s), int(350*s), hex_rgb("#0088DD"), 0.40)
+    # 3. Ambient glow around the arc center
+    img = radial_glow(img, arc_cx, arc_cy, int(520*s), hex_rgb("#2860DD"), 0.50)
+    img = radial_glow(img, arc_cx, int(380*s), int(350*s), hex_rgb("#40AAEE"), 0.38)
 
-    # 4. 若隐若现的 "E" 字母（先于弧线绘制，弧线叠在上面）
-    img = draw_E_ghost(
-        img,
-        cx=int(512 * s),
-        cy=int(470 * s),
-        height=int(520 * s),
-        width=int(345 * s),
-        stroke=max(4, int(60 * s)),
-        color=hex_rgb("#88CCEE"),
-    )
-
-    # 5. 上行弧线（从 arc_cy 向上辐射，5 条，由内到外渐淡）
-    # 每条弧：(半径, 颜色, 线宽, 不透明度, 模糊半径)
+    # 4. Echo arcs radiating upward (5 arcs, white inner to light blue outer)
+    # Each arc: (radius, color, stroke_width, opacity, blur_radius)
     arcs = [
-        (int(112*s), hex_rgb("#C8F2FF"), max(3, int(11*s)), 240, max(1, int(7*s))),
-        (int(200*s), hex_rgb("#90DCFF"), max(3, int(10*s)), 210, max(1, int(9*s))),
-        (int(298*s), hex_rgb("#58C2EE"), max(2, int(9*s)),  175, max(1, int(11*s))),
-        (int(400*s), hex_rgb("#30A8DC"), max(2, int(7*s)),  135, max(1, int(13*s))),
-        (int(492*s), hex_rgb("#1A8CC8"), max(2, int(5*s)),  90,  max(1, int(16*s))),
+        (int(112*s), hex_rgb("#FFFFFF"), max(3, int(11*s)), 240, 0),
+        (int(200*s), hex_rgb("#E8F2FF"), max(3, int(10*s)), 215, 0),
+        (int(298*s), hex_rgb("#D0E4FF"), max(2, int(9*s)),  190, 0),
+        (int(400*s), hex_rgb("#B8D6FF"), max(2, int(7*s)),  165, 0),
+        (int(492*s), hex_rgb("#A0C8FF"), max(2, int(5*s)),  140, 0),
     ]
     for r, col, w, op, bl in arcs:
         img = echo_arc(img, arc_cx, arc_cy, r, col, w, op, bl)
 
-    # 6. 圆角遮罩
+    # 5. Rounded corner mask
     mask = Image.new("L", img.size, 0)
     rounded_rect_mask(img.width, img.height, int(200*s), ImageDraw.Draw(mask))
     img.putalpha(mask)
