@@ -13,4 +13,5 @@ class Notes extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  BoolColumn get skipOptimization => boolean().withDefault(const Constant(false))();
 }

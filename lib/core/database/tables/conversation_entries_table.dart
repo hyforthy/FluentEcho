@@ -9,6 +9,7 @@ class ConversationEntries extends Table {
   TextColumn get translatedText => text().nullable()();
   TextColumn get audioFilePath => text().nullable()();
   IntColumn get savedNoteId => integer().nullable()();
+  BoolColumn get skipOptimization => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
 
   @override

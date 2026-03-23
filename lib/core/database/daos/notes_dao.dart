@@ -138,6 +138,14 @@ class NotesDao extends DatabaseAccessor<AppDatabase> with _$NotesDaoMixin {
   Future<int> deleteById(int id) =>
       (delete(notes)..where((n) => n.id.equals(id))).go();
 
+  Future<void> toggleFavorite(int noteId) async {
+    final row = await (select(notes)..where((n) => n.id.equals(noteId))).getSingleOrNull();
+    if (row == null) return;
+    await (update(notes)..where((n) => n.id.equals(noteId))).write(
+      NotesCompanion(isFavorite: Value(!row.isFavorite)),
+    );
+  }
+
   Future<void> updateAudioPath(int noteId, String audioPath) =>
       (update(notes)..where((n) => n.id.equals(noteId))).write(
         NotesCompanion(audioFilePath: Value(audioPath)),
@@ -239,6 +247,7 @@ class NotesDao extends DatabaseAccessor<AppDatabase> with _$NotesDaoMixin {
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         isFavorite: row.isFavorite,
+        skipOptimization: row.skipOptimization,
       );
 
   Note _queryRowToNote(QueryRow row) => Note(
@@ -257,5 +266,6 @@ class NotesDao extends DatabaseAccessor<AppDatabase> with _$NotesDaoMixin {
           row.read<int>('updated_at') * 1000,
         ),
         isFavorite: row.read<int>('is_favorite') == 1,
+        skipOptimization: row.read<int>('skip_optimization') == 1,
       );
 }

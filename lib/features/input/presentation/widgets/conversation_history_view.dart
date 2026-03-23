@@ -22,6 +22,8 @@ class ConversationHistoryView extends ConsumerWidget {
     final historyState = ref.watch(conversationHistoryNotifierProvider);
     final history = historyState.entries;
     final inputState = ref.watch(inputNotifierProvider);
+    final translatingIds = ref.watch(translatingEntryIdsProvider);
+    final optimizingIds = ref.watch(optimizingEntryIdsProvider);
 
     final hasActiveStream = inputState.maybeWhen(
       idle: () => false,
@@ -91,7 +93,7 @@ class ConversationHistoryView extends ConsumerWidget {
               history.length - 1 - (hasActiveStream ? index - 1 : index);
           final entry = history[historyIndex];
           return Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -99,10 +101,27 @@ class ConversationHistoryView extends ConsumerWidget {
                   text: entry.originalText,
                   time: entry.createdAt,
                   isFromVoice: entry.isFromVoice,
+                  onSkipOptimize: (text) => ref
+                      .read(inputNotifierProvider.notifier)
+                      .skipOptimize(entry, text: text),
+                  onReoptimize: (text) => ref
+                      .read(inputNotifierProvider.notifier)
+                      .reoptimize(entry, text: text),
                 ),
-                if (entry.optimizedText.isNotEmpty || entry.errorMessage != null) ...[
+                if (entry.optimizedText.isNotEmpty ||
+                    entry.errorMessage != null ||
+                    translatingIds.contains(entry.id) ||
+                    optimizingIds.contains(entry.id)) ...[
                   const SizedBox(height: AppSpacing.xs),
-                  AIResultBubble(entry: entry, isStreaming: false),
+                  AIResultBubble(
+                    entry: entry,
+                    isStreaming: optimizingIds.contains(entry.id) || translatingIds.contains(entry.id),
+                    section: optimizingIds.contains(entry.id)
+                        ? StreamingSection.optimizing
+                        : translatingIds.contains(entry.id)
+                            ? StreamingSection.translating
+                            : null,
+                  ),
                 ],
               ],
             ),

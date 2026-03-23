@@ -11,6 +11,7 @@ class Note {
     required this.createdAt,
     required this.updatedAt,
     required this.isFavorite,
+    this.skipOptimization = false,
   });
 
   final int id;
@@ -24,6 +25,7 @@ class Note {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isFavorite;
+  final bool skipOptimization;
 }
 
 enum NoteFilter { all, zhToEn, enToZh }

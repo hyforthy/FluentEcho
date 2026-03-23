@@ -100,6 +100,13 @@ class ConversationHistoryNotifier
     updateEntry(entry);
   }
 
+  void markUnsavedByNoteId(int noteId) {
+    final idx = state.entries.indexWhere((e) => e.savedNoteId == noteId);
+    if (idx == -1) return;
+    final entry = state.entries[idx].clearSavedNoteId();
+    updateEntry(entry);
+  }
+
   void clear() {
     state = const ConversationHistoryState();
   }

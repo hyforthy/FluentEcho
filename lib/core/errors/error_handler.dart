@@ -25,7 +25,7 @@ class ErrorHandler {
       return '请求超时，请检查网络后重试';
     }
     if (e is NetworkException) return _parseNetworkMessage(e.message);
-    if (e is ParseWarningException) return '响应解析异常，请重试';
+    if (e is ParseWarningException) return 'AI 返回内容格式异常，请重试';
     if (e is AppException) return e.message;
     // UnsupportedError.toString() returns "Unsupported operation: ...", not the type name —
     // use type check instead of string matching.
@@ -40,7 +40,7 @@ class ErrorHandler {
       return '请前往设置完成对应服务的配置';
     }
 
-    return '出现未知错误，请稍后重试';
+    return '出现意外错误，请稍后重试';
   }
 
   static String _parseNetworkMessage(String message) {

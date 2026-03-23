@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +18,7 @@ import '../domain/usecases/export_import_notes_usecase.dart';
 import 'providers/note_detail_notifier.dart';
 import 'providers/note_list_notifier.dart';
 import 'providers/note_tags_notifier.dart';
+import '../../input/presentation/providers/conversation_history_notifier.dart';
 
 class NoteListScreen extends ConsumerWidget {
   const NoteListScreen({super.key});
@@ -346,7 +349,10 @@ class NoteCard extends ConsumerWidget {
       ),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) => _showDeleteConfirm(context),
-      onDismissed: (_) => ref.read(deleteNoteUseCaseProvider).call(note.id),
+      onDismissed: (_) {
+        unawaited(ref.read(deleteNoteUseCaseProvider).call(note.id));
+        ref.read(conversationHistoryNotifierProvider.notifier).markUnsavedByNoteId(note.id);
+      },
       child: GestureDetector(
         onLongPress: () => _showContextMenu(context, ref, note),
         onTap: () => context.push('/notes/${note.id}'),
@@ -589,7 +595,11 @@ void _showContextMenu(BuildContext context, WidgetRef ref, Note note) {
             onTap: () async {
               Navigator.pop(context);
               final ok = await _showDeleteConfirm(context);
-              if (ok) ref.read(deleteNoteUseCaseProvider).call(note.id);
+              if (ok) {
+                unawaited(ref.read(deleteNoteUseCaseProvider).call(note.id));
+                ref.read(conversationHistoryNotifierProvider.notifier).markUnsavedByNoteId(note.id);
+                ref.invalidate(noteListNotifierProvider);
+              }
             },
           ),
         ],

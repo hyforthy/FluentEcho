@@ -11,6 +11,8 @@ import '../../domain/entities/conversation_entry.dart';
 import '../../domain/entities/detected_language.dart';
 import '../../domain/services/language_detector.dart';
 import 'conversation_history_notifier.dart';
+import '../../../notes/presentation/providers/note_detail_notifier.dart';
+import '../../../notes/presentation/providers/note_list_notifier.dart';
 
 part 'input_notifier.g.dart';
 part 'input_notifier.freezed.dart';
@@ -48,6 +50,16 @@ class InputState with _$InputState {
     required String originalText,
   }) = _Error;
 }
+
+/// ID of the user bubble currently in inline-edit mode, or null if none.
+/// Changing to a different ID causes the previous bubble to auto-cancel.
+final bubbleEditingProvider = StateProvider<String?>((ref) => null);
+
+/// Entry IDs currently being translated via skipOptimize (shows "生成中" on translation section).
+final translatingEntryIdsProvider = StateProvider<Set<String>>((ref) => {});
+
+/// Entry IDs currently in the optimization streaming phase of reoptimize().
+final optimizingEntryIdsProvider = StateProvider<Set<String>>((ref) => {});
 
 /// Text field Controller provider, shared between InputBar and InputScreen
 final inputTextControllerProvider = Provider.autoDispose<TextEditingController>((ref) {
@@ -213,6 +225,112 @@ class InputNotifier extends _$InputNotifier {
       await Future<void>.delayed(const Duration(milliseconds: 100));
       state = const InputState.idle();
     }
+  }
+
+  /// Skip LLM optimization: use [text] as-is, re-request translation only.
+  /// [text] defaults to entry.originalText; pass an edited value to update it.
+  Future<void> skipOptimize(ConversationEntry entry, {String? text}) async {
+    final useText = (text != null && text.trim().isNotEmpty)
+        ? text.trim()
+        : entry.originalText;
+    final historyNotifier = ref.read(conversationHistoryNotifierProvider.notifier);
+    final pending = entry.withSkippedOptimization(useText);
+    historyNotifier.updateEntry(pending);
+    ref.read(translatingEntryIdsProvider.notifier).update((s) => {...s, pending.id});
+    try {
+      final translation = await ref.read(llmServiceProvider).translate(
+        text: useText,
+        detectedLanguage: entry.detectedLanguage,
+      );
+      final translatedText = translation.isNotEmpty ? translation : null;
+      historyNotifier.updateEntry(pending.copyWith(translatedText: translatedText));
+      if (pending.savedNoteId != null) {
+        await ref.read(noteRepositoryProvider).updateSkippedContent(
+          pending.savedNoteId!,
+          text: useText,
+          translatedText: translatedText,
+        );
+        ref.invalidate(noteListNotifierProvider);
+        ref.invalidate(noteDetailProvider(pending.savedNoteId!));
+      }
+    } catch (e) {
+      // Roll back to original entry so conversation is not left in a half-done state.
+      historyNotifier.updateEntry(entry);
+      final msg = ErrorHandler.toUserMessage(e);
+      state = InputState.error(message: msg, originalText: useText);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      state = const InputState.idle();
+    }
+    ref.read(translatingEntryIdsProvider.notifier).update((s) => s.difference({pending.id}));
+  }
+
+  /// Re-optimize with new [text]: full language detect → optimize stream → translate.
+  Future<void> reoptimize(ConversationEntry entry, {required String text}) async {
+    final useText = text.trim();
+    if (useText.isEmpty) return;
+    final historyNotifier = ref.read(conversationHistoryNotifierProvider.notifier);
+    final pending = entry.withReoptimize(useText);
+    historyNotifier.updateEntry(pending);
+    // Phase 1: optimizing
+    ref.read(optimizingEntryIdsProvider.notifier).update((s) => {...s, pending.id});
+    try {
+      final detector = LanguageDetector();
+      var detected = detector.detect(useText);
+      if (detected.confidence < 0.7) {
+        try {
+          final lang = await ref.read(llmServiceProvider).detectLanguage(useText);
+          detected = DetectedLanguage(language: lang, confidence: 0.9, source: DetectionSource.llm);
+        } catch (_) {}
+      }
+      final llmService = ref.read(llmServiceProvider);
+      String optimizedText = '';
+      await for (final chunk in llmService.optimizeTextStream(
+        text: useText,
+        detectedLanguage: detected,
+      )) {
+        optimizedText += chunk;
+        historyNotifier.updateEntry(pending.copyWith(
+          detectedLanguage: detected,
+          optimizedText: optimizedText,
+        ));
+      }
+      // Phase 2: translating
+      ref.read(optimizingEntryIdsProvider.notifier).update((s) => s.difference({pending.id}));
+      ref.read(translatingEntryIdsProvider.notifier).update((s) => {...s, pending.id});
+      final translation = await llmService.translate(
+        text: optimizedText,
+        detectedLanguage: detected,
+      );
+      final finished = pending.copyWith(
+        detectedLanguage: detected,
+        optimizedText: optimizedText,
+        translatedText: translation.isNotEmpty ? translation : null,
+      );
+      historyNotifier.updateEntry(finished);
+      if (finished.savedNoteId != null) {
+        await ref.read(noteRepositoryProvider).updateReoptimizedContent(
+          finished.savedNoteId!,
+          originalText: useText,
+          optimizedText: optimizedText,
+          translatedText: finished.translatedText,
+        );
+        ref.invalidate(noteListNotifierProvider);
+        ref.invalidate(noteDetailProvider(finished.savedNoteId!));
+      }
+    } catch (e) {
+      historyNotifier.updateEntry(entry);
+      final msg = ErrorHandler.toUserMessage(e);
+      ref.read(errorLogProvider.notifier).add(
+        service: ErrorLogService.llm,
+        message: msg,
+        error: e,
+      );
+      state = InputState.error(message: msg, originalText: useText);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      state = const InputState.idle();
+    }
+    ref.read(optimizingEntryIdsProvider.notifier).update((s) => s.difference({pending.id}));
+    ref.read(translatingEntryIdsProvider.notifier).update((s) => s.difference({pending.id}));
   }
 
   Future<void> retryLlm(ConversationEntry failedEntry) async {

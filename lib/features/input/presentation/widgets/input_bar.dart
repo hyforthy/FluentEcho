@@ -17,7 +17,7 @@ import 'waveform_indicator.dart';
 
 enum _InputMode { voice, text }
 
-enum _RecordState { idle, preparing, recording, processing }
+enum _RecordState { idle, recording, processing }
 
 class InputBar extends ConsumerStatefulWidget {
   final TextEditingController controller;
@@ -39,7 +39,6 @@ class _InputBarState extends ConsumerState<InputBar>
     with SingleTickerProviderStateMixin {
   _InputMode _mode = _InputMode.voice;
   _RecordState _recordState = _RecordState.idle;
-  Timer? _prepareTimer;
   Timer? _recordingTimer;
   Duration _recordingDuration = Duration.zero;
   double _pointerStartY = 0;
@@ -53,7 +52,6 @@ class _InputBarState extends ConsumerState<InputBar>
   final _durationNotifier = ValueNotifier<Duration>(Duration.zero);
 
   static const _cancelThreshold = 80.0;
-  static const _prepareDelay = Duration(milliseconds: 100);
 
   late AnimationController _pulseCtrl;
 
@@ -68,7 +66,6 @@ class _InputBarState extends ConsumerState<InputBar>
 
   @override
   void dispose() {
-    _prepareTimer?.cancel();
     _recordingTimer?.cancel();
     _amplitudeSub?.cancel();
     _pulseCtrl.dispose();
@@ -117,8 +114,7 @@ class _InputBarState extends ConsumerState<InputBar>
   }
 
   Widget _buildVoiceMode() {
-    final showKeyboard = _recordState == _RecordState.idle ||
-        _recordState == _RecordState.preparing;
+    final showKeyboard = _recordState == _RecordState.idle;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -144,7 +140,6 @@ class _InputBarState extends ConsumerState<InputBar>
       onPointerCancel: (_) => _cancelRecording(),
       child: switch (_recordState) {
         _RecordState.idle ||
-        _RecordState.preparing ||
         _RecordState.recording =>
           _buildPressToSpeakContent(),
         _RecordState.processing => _buildProcessingContent(),
@@ -329,14 +324,9 @@ class _InputBarState extends ConsumerState<InputBar>
 
   void _beginPreparing(double y) {
     _pointerStartY = y;
-    setState(() => _recordState = _RecordState.preparing);
-    _prepareTimer = Timer(_prepareDelay, () {
-      if (mounted && _recordState == _RecordState.preparing) {
-        HapticFeedback.mediumImpact();
-        _startRecording();
-        _showOverlay();
-      }
-    });
+    HapticFeedback.mediumImpact();
+    _startRecording();
+    _showOverlay();
   }
 
   void _showMicPermissionSnackBar({required bool permanent}) {
@@ -367,11 +357,6 @@ class _InputBarState extends ConsumerState<InputBar>
   }
 
   void _onPointerUp() {
-    if (_recordState == _RecordState.preparing) {
-      _prepareTimer?.cancel();
-      setState(() => _recordState = _RecordState.idle);
-      return;
-    }
     if (_recordState == _RecordState.recording) {
       final shouldCancel = _cancelNotifier.value;
       _removeOverlay();
@@ -473,7 +458,6 @@ class _InputBarState extends ConsumerState<InputBar>
 
   void _cancelRecording() {
     final wasRecording = _recordState == _RecordState.recording;
-    _prepareTimer?.cancel();
     _recordingTimer?.cancel();
     _amplitudeSub?.cancel();
     _amplitudeSub = null;
@@ -519,7 +503,7 @@ class _RecordingHalfCircle extends StatelessWidget {
             // bottom half is off-screen — only the dome is visible.
             Positioned.fill(
               child: TweenAnimationBuilder<Color?>(
-                tween: ColorTween(end: circleColor.withOpacity(0.95)),
+                tween: ColorTween(end: circleColor),
                 duration: const Duration(milliseconds: 250),
                 builder: (_, color, __) => CustomPaint(
                   painter: _SemiCirclePainter(

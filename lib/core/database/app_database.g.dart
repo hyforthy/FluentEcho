@@ -89,6 +89,16 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteData> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _skipOptimizationMeta =
+      const VerificationMeta('skipOptimization');
+  @override
+  late final GeneratedColumn<bool> skipOptimization = GeneratedColumn<bool>(
+      'skip_optimization', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("skip_optimization" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -101,7 +111,8 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteData> {
         audioFileSizeBytes,
         createdAt,
         updatedAt,
-        isFavorite
+        isFavorite,
+        skipOptimization
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -174,6 +185,12 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteData> {
           isFavorite.isAcceptableOrUnknown(
               data['is_favorite']!, _isFavoriteMeta));
     }
+    if (data.containsKey('skip_optimization')) {
+      context.handle(
+          _skipOptimizationMeta,
+          skipOptimization.isAcceptableOrUnknown(
+              data['skip_optimization']!, _skipOptimizationMeta));
+    }
     return context;
   }
 
@@ -205,6 +222,8 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteData> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       isFavorite: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
+      skipOptimization: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}skip_optimization'])!,
     );
   }
 
@@ -226,6 +245,7 @@ class NoteData extends DataClass implements Insertable<NoteData> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isFavorite;
+  final bool skipOptimization;
   const NoteData(
       {required this.id,
       required this.originalText,
@@ -237,7 +257,8 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       this.audioFileSizeBytes,
       required this.createdAt,
       required this.updatedAt,
-      required this.isFavorite});
+      required this.isFavorite,
+      required this.skipOptimization});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -260,6 +281,7 @@ class NoteData extends DataClass implements Insertable<NoteData> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_favorite'] = Variable<bool>(isFavorite);
+    map['skip_optimization'] = Variable<bool>(skipOptimization);
     return map;
   }
 
@@ -284,6 +306,7 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isFavorite: Value(isFavorite),
+      skipOptimization: Value(skipOptimization),
     );
   }
 
@@ -303,6 +326,7 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
+      skipOptimization: serializer.fromJson<bool>(json['skipOptimization']),
     );
   }
   @override
@@ -320,6 +344,7 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isFavorite': serializer.toJson<bool>(isFavorite),
+      'skipOptimization': serializer.toJson<bool>(skipOptimization),
     };
   }
 
@@ -334,7 +359,8 @@ class NoteData extends DataClass implements Insertable<NoteData> {
           Value<int?> audioFileSizeBytes = const Value.absent(),
           DateTime? createdAt,
           DateTime? updatedAt,
-          bool? isFavorite}) =>
+          bool? isFavorite,
+          bool? skipOptimization}) =>
       NoteData(
         id: id ?? this.id,
         originalText: originalText ?? this.originalText,
@@ -352,6 +378,7 @@ class NoteData extends DataClass implements Insertable<NoteData> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         isFavorite: isFavorite ?? this.isFavorite,
+        skipOptimization: skipOptimization ?? this.skipOptimization,
       );
   NoteData copyWithCompanion(NotesCompanion data) {
     return NoteData(
@@ -381,6 +408,9 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isFavorite:
           data.isFavorite.present ? data.isFavorite.value : this.isFavorite,
+      skipOptimization: data.skipOptimization.present
+          ? data.skipOptimization.value
+          : this.skipOptimization,
     );
   }
 
@@ -397,7 +427,8 @@ class NoteData extends DataClass implements Insertable<NoteData> {
           ..write('audioFileSizeBytes: $audioFileSizeBytes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('isFavorite: $isFavorite')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('skipOptimization: $skipOptimization')
           ..write(')'))
         .toString();
   }
@@ -414,7 +445,8 @@ class NoteData extends DataClass implements Insertable<NoteData> {
       audioFileSizeBytes,
       createdAt,
       updatedAt,
-      isFavorite);
+      isFavorite,
+      skipOptimization);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -429,7 +461,8 @@ class NoteData extends DataClass implements Insertable<NoteData> {
           other.audioFileSizeBytes == this.audioFileSizeBytes &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.isFavorite == this.isFavorite);
+          other.isFavorite == this.isFavorite &&
+          other.skipOptimization == this.skipOptimization);
 }
 
 class NotesCompanion extends UpdateCompanion<NoteData> {
@@ -444,6 +477,7 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isFavorite;
+  final Value<bool> skipOptimization;
   const NotesCompanion({
     this.id = const Value.absent(),
     this.originalText = const Value.absent(),
@@ -456,6 +490,7 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isFavorite = const Value.absent(),
+    this.skipOptimization = const Value.absent(),
   });
   NotesCompanion.insert({
     this.id = const Value.absent(),
@@ -469,6 +504,7 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isFavorite = const Value.absent(),
+    this.skipOptimization = const Value.absent(),
   }) : originalText = Value(originalText);
   static Insertable<NoteData> custom({
     Expression<int>? id,
@@ -482,6 +518,7 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isFavorite,
+    Expression<bool>? skipOptimization,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -497,6 +534,7 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isFavorite != null) 'is_favorite': isFavorite,
+      if (skipOptimization != null) 'skip_optimization': skipOptimization,
     });
   }
 
@@ -511,7 +549,8 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
       Value<int?>? audioFileSizeBytes,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
-      Value<bool>? isFavorite}) {
+      Value<bool>? isFavorite,
+      Value<bool>? skipOptimization}) {
     return NotesCompanion(
       id: id ?? this.id,
       originalText: originalText ?? this.originalText,
@@ -524,6 +563,7 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isFavorite: isFavorite ?? this.isFavorite,
+      skipOptimization: skipOptimization ?? this.skipOptimization,
     );
   }
 
@@ -563,6 +603,9 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
+    if (skipOptimization.present) {
+      map['skip_optimization'] = Variable<bool>(skipOptimization.value);
+    }
     return map;
   }
 
@@ -579,7 +622,8 @@ class NotesCompanion extends UpdateCompanion<NoteData> {
           ..write('audioFileSizeBytes: $audioFileSizeBytes, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('isFavorite: $isFavorite')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('skipOptimization: $skipOptimization')
           ..write(')'))
         .toString();
   }
@@ -1488,6 +1532,16 @@ class $ConversationEntriesTable extends ConversationEntries
   late final GeneratedColumn<int> savedNoteId = GeneratedColumn<int>(
       'saved_note_id', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _skipOptimizationMeta =
+      const VerificationMeta('skipOptimization');
+  @override
+  late final GeneratedColumn<bool> skipOptimization = GeneratedColumn<bool>(
+      'skip_optimization', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("skip_optimization" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -1504,6 +1558,7 @@ class $ConversationEntriesTable extends ConversationEntries
         translatedText,
         audioFilePath,
         savedNoteId,
+        skipOptimization,
         createdAt
       ];
   @override
@@ -1563,6 +1618,12 @@ class $ConversationEntriesTable extends ConversationEntries
           savedNoteId.isAcceptableOrUnknown(
               data['saved_note_id']!, _savedNoteIdMeta));
     }
+    if (data.containsKey('skip_optimization')) {
+      context.handle(
+          _skipOptimizationMeta,
+          skipOptimization.isAcceptableOrUnknown(
+              data['skip_optimization']!, _skipOptimizationMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -1594,6 +1655,8 @@ class $ConversationEntriesTable extends ConversationEntries
           .read(DriftSqlType.string, data['${effectivePrefix}audio_file_path']),
       savedNoteId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}saved_note_id']),
+      skipOptimization: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}skip_optimization'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
     );
@@ -1615,6 +1678,7 @@ class ConversationEntry extends DataClass
   final String? translatedText;
   final String? audioFilePath;
   final int? savedNoteId;
+  final bool skipOptimization;
   final int createdAt;
   const ConversationEntry(
       {required this.id,
@@ -1625,6 +1689,7 @@ class ConversationEntry extends DataClass
       this.translatedText,
       this.audioFilePath,
       this.savedNoteId,
+      required this.skipOptimization,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1645,6 +1710,7 @@ class ConversationEntry extends DataClass
     if (!nullToAbsent || savedNoteId != null) {
       map['saved_note_id'] = Variable<int>(savedNoteId);
     }
+    map['skip_optimization'] = Variable<bool>(skipOptimization);
     map['created_at'] = Variable<int>(createdAt);
     return map;
   }
@@ -1667,6 +1733,7 @@ class ConversationEntry extends DataClass
       savedNoteId: savedNoteId == null && nullToAbsent
           ? const Value.absent()
           : Value(savedNoteId),
+      skipOptimization: Value(skipOptimization),
       createdAt: Value(createdAt),
     );
   }
@@ -1683,6 +1750,7 @@ class ConversationEntry extends DataClass
       translatedText: serializer.fromJson<String?>(json['translatedText']),
       audioFilePath: serializer.fromJson<String?>(json['audioFilePath']),
       savedNoteId: serializer.fromJson<int?>(json['savedNoteId']),
+      skipOptimization: serializer.fromJson<bool>(json['skipOptimization']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
     );
   }
@@ -1698,6 +1766,7 @@ class ConversationEntry extends DataClass
       'translatedText': serializer.toJson<String?>(translatedText),
       'audioFilePath': serializer.toJson<String?>(audioFilePath),
       'savedNoteId': serializer.toJson<int?>(savedNoteId),
+      'skipOptimization': serializer.toJson<bool>(skipOptimization),
       'createdAt': serializer.toJson<int>(createdAt),
     };
   }
@@ -1711,6 +1780,7 @@ class ConversationEntry extends DataClass
           Value<String?> translatedText = const Value.absent(),
           Value<String?> audioFilePath = const Value.absent(),
           Value<int?> savedNoteId = const Value.absent(),
+          bool? skipOptimization,
           int? createdAt}) =>
       ConversationEntry(
         id: id ?? this.id,
@@ -1724,6 +1794,7 @@ class ConversationEntry extends DataClass
         audioFilePath:
             audioFilePath.present ? audioFilePath.value : this.audioFilePath,
         savedNoteId: savedNoteId.present ? savedNoteId.value : this.savedNoteId,
+        skipOptimization: skipOptimization ?? this.skipOptimization,
         createdAt: createdAt ?? this.createdAt,
       );
   ConversationEntry copyWithCompanion(ConversationEntriesCompanion data) {
@@ -1745,6 +1816,9 @@ class ConversationEntry extends DataClass
           : this.audioFilePath,
       savedNoteId:
           data.savedNoteId.present ? data.savedNoteId.value : this.savedNoteId,
+      skipOptimization: data.skipOptimization.present
+          ? data.skipOptimization.value
+          : this.skipOptimization,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -1760,14 +1834,24 @@ class ConversationEntry extends DataClass
           ..write('translatedText: $translatedText, ')
           ..write('audioFilePath: $audioFilePath, ')
           ..write('savedNoteId: $savedNoteId, ')
+          ..write('skipOptimization: $skipOptimization, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, inputText, inputLang, detectionSource,
-      optimizedText, translatedText, audioFilePath, savedNoteId, createdAt);
+  int get hashCode => Object.hash(
+      id,
+      inputText,
+      inputLang,
+      detectionSource,
+      optimizedText,
+      translatedText,
+      audioFilePath,
+      savedNoteId,
+      skipOptimization,
+      createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1780,6 +1864,7 @@ class ConversationEntry extends DataClass
           other.translatedText == this.translatedText &&
           other.audioFilePath == this.audioFilePath &&
           other.savedNoteId == this.savedNoteId &&
+          other.skipOptimization == this.skipOptimization &&
           other.createdAt == this.createdAt);
 }
 
@@ -1792,6 +1877,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
   final Value<String?> translatedText;
   final Value<String?> audioFilePath;
   final Value<int?> savedNoteId;
+  final Value<bool> skipOptimization;
   final Value<int> createdAt;
   final Value<int> rowid;
   const ConversationEntriesCompanion({
@@ -1803,6 +1889,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
     this.translatedText = const Value.absent(),
     this.audioFilePath = const Value.absent(),
     this.savedNoteId = const Value.absent(),
+    this.skipOptimization = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1815,6 +1902,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
     this.translatedText = const Value.absent(),
     this.audioFilePath = const Value.absent(),
     this.savedNoteId = const Value.absent(),
+    this.skipOptimization = const Value.absent(),
     required int createdAt,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -1830,6 +1918,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
     Expression<String>? translatedText,
     Expression<String>? audioFilePath,
     Expression<int>? savedNoteId,
+    Expression<bool>? skipOptimization,
     Expression<int>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -1842,6 +1931,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
       if (translatedText != null) 'translated_text': translatedText,
       if (audioFilePath != null) 'audio_file_path': audioFilePath,
       if (savedNoteId != null) 'saved_note_id': savedNoteId,
+      if (skipOptimization != null) 'skip_optimization': skipOptimization,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1856,6 +1946,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
       Value<String?>? translatedText,
       Value<String?>? audioFilePath,
       Value<int?>? savedNoteId,
+      Value<bool>? skipOptimization,
       Value<int>? createdAt,
       Value<int>? rowid}) {
     return ConversationEntriesCompanion(
@@ -1867,6 +1958,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
       translatedText: translatedText ?? this.translatedText,
       audioFilePath: audioFilePath ?? this.audioFilePath,
       savedNoteId: savedNoteId ?? this.savedNoteId,
+      skipOptimization: skipOptimization ?? this.skipOptimization,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1899,6 +1991,9 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
     if (savedNoteId.present) {
       map['saved_note_id'] = Variable<int>(savedNoteId.value);
     }
+    if (skipOptimization.present) {
+      map['skip_optimization'] = Variable<bool>(skipOptimization.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<int>(createdAt.value);
     }
@@ -1919,6 +2014,7 @@ class ConversationEntriesCompanion extends UpdateCompanion<ConversationEntry> {
           ..write('translatedText: $translatedText, ')
           ..write('audioFilePath: $audioFilePath, ')
           ..write('savedNoteId: $savedNoteId, ')
+          ..write('skipOptimization: $skipOptimization, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1956,6 +2052,7 @@ typedef $$NotesTableCreateCompanionBuilder = NotesCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<bool> isFavorite,
+  Value<bool> skipOptimization,
 });
 typedef $$NotesTableUpdateCompanionBuilder = NotesCompanion Function({
   Value<int> id,
@@ -1969,6 +2066,7 @@ typedef $$NotesTableUpdateCompanionBuilder = NotesCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<bool> isFavorite,
+  Value<bool> skipOptimization,
 });
 
 class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
@@ -2015,6 +2113,10 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
 
   ColumnFilters<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get skipOptimization => $composableBuilder(
+      column: $table.skipOptimization,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$NotesTableOrderingComposer
@@ -2065,6 +2167,10 @@ class $$NotesTableOrderingComposer
 
   ColumnOrderings<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get skipOptimization => $composableBuilder(
+      column: $table.skipOptimization,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$NotesTableAnnotationComposer
@@ -2108,6 +2214,9 @@ class $$NotesTableAnnotationComposer
 
   GeneratedColumn<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => column);
+
+  GeneratedColumn<bool> get skipOptimization => $composableBuilder(
+      column: $table.skipOptimization, builder: (column) => column);
 }
 
 class $$NotesTableTableManager extends RootTableManager<
@@ -2144,6 +2253,7 @@ class $$NotesTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<bool> isFavorite = const Value.absent(),
+            Value<bool> skipOptimization = const Value.absent(),
           }) =>
               NotesCompanion(
             id: id,
@@ -2157,6 +2267,7 @@ class $$NotesTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             isFavorite: isFavorite,
+            skipOptimization: skipOptimization,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2170,6 +2281,7 @@ class $$NotesTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<bool> isFavorite = const Value.absent(),
+            Value<bool> skipOptimization = const Value.absent(),
           }) =>
               NotesCompanion.insert(
             id: id,
@@ -2183,6 +2295,7 @@ class $$NotesTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             isFavorite: isFavorite,
+            skipOptimization: skipOptimization,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -2680,6 +2793,7 @@ typedef $$ConversationEntriesTableCreateCompanionBuilder
   Value<String?> translatedText,
   Value<String?> audioFilePath,
   Value<int?> savedNoteId,
+  Value<bool> skipOptimization,
   required int createdAt,
   Value<int> rowid,
 });
@@ -2693,6 +2807,7 @@ typedef $$ConversationEntriesTableUpdateCompanionBuilder
   Value<String?> translatedText,
   Value<String?> audioFilePath,
   Value<int?> savedNoteId,
+  Value<bool> skipOptimization,
   Value<int> createdAt,
   Value<int> rowid,
 });
@@ -2731,6 +2846,10 @@ class $$ConversationEntriesTableFilterComposer
 
   ColumnFilters<int> get savedNoteId => $composableBuilder(
       column: $table.savedNoteId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get skipOptimization => $composableBuilder(
+      column: $table.skipOptimization,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -2773,6 +2892,10 @@ class $$ConversationEntriesTableOrderingComposer
   ColumnOrderings<int> get savedNoteId => $composableBuilder(
       column: $table.savedNoteId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get skipOptimization => $composableBuilder(
+      column: $table.skipOptimization,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
@@ -2809,6 +2932,9 @@ class $$ConversationEntriesTableAnnotationComposer
 
   GeneratedColumn<int> get savedNoteId => $composableBuilder(
       column: $table.savedNoteId, builder: (column) => column);
+
+  GeneratedColumn<bool> get skipOptimization => $composableBuilder(
+      column: $table.skipOptimization, builder: (column) => column);
 
   GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2852,6 +2978,7 @@ class $$ConversationEntriesTableTableManager extends RootTableManager<
             Value<String?> translatedText = const Value.absent(),
             Value<String?> audioFilePath = const Value.absent(),
             Value<int?> savedNoteId = const Value.absent(),
+            Value<bool> skipOptimization = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2864,6 +2991,7 @@ class $$ConversationEntriesTableTableManager extends RootTableManager<
             translatedText: translatedText,
             audioFilePath: audioFilePath,
             savedNoteId: savedNoteId,
+            skipOptimization: skipOptimization,
             createdAt: createdAt,
             rowid: rowid,
           ),
@@ -2876,6 +3004,7 @@ class $$ConversationEntriesTableTableManager extends RootTableManager<
             Value<String?> translatedText = const Value.absent(),
             Value<String?> audioFilePath = const Value.absent(),
             Value<int?> savedNoteId = const Value.absent(),
+            Value<bool> skipOptimization = const Value.absent(),
             required int createdAt,
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2888,6 +3017,7 @@ class $$ConversationEntriesTableTableManager extends RootTableManager<
             translatedText: translatedText,
             audioFilePath: audioFilePath,
             savedNoteId: savedNoteId,
+            skipOptimization: skipOptimization,
             createdAt: createdAt,
             rowid: rowid,
           ),

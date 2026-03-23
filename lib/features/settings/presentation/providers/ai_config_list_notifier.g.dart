@@ -7,7 +7,7 @@ part of 'ai_config_list_notifier.dart';
 // **************************************************************************
 
 String _$aiConfigListNotifierHash() =>
-    r'd4788e0e5797d7dca4ac120ef8264c91a0b0d0c4';
+    r'51ecd7e356abf89a01e9541c21f873b95b5a1c85';
 
 /// Copied from Dart SDK
 class _SystemHash {

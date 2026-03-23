@@ -19,15 +19,33 @@ class InputScreen extends ConsumerStatefulWidget {
 class _InputScreenState extends ConsumerState<InputScreen> {
   final _scrollController = ScrollController();
   late TextEditingController _textController;
+  bool? _routeWasCurrent;
 
   @override
   void initState() {
     super.initState();
     _textController = ref.read(inputTextControllerProvider);
+    // New screen instance: always start with no bubble in edit mode.
+    ref.read(bubbleEditingProvider.notifier).state = null;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isNowCurrent = ModalRoute.of(context)?.isCurrent ?? true;
+    if (isNowCurrent && _routeWasCurrent == false) {
+      // Screen just regained focus (e.g. returned from settings).
+      // Clear any stale bubble editing state so the input bar reappears.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(bubbleEditingProvider.notifier).state = null;
+      });
+    }
+    _routeWasCurrent = isNowCurrent;
   }
 
   @override
   void dispose() {
+    ref.read(bubbleEditingProvider.notifier).state = null;
     _scrollController.dispose();
     super.dispose();
   }
@@ -97,24 +115,25 @@ class _InputScreenState extends ConsumerState<InputScreen> {
       body: Stack(
         children: [
           ConversationHistoryView(scrollController: _scrollController),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SafeArea(
-              top: false,
-              left: false,
-              right: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-                child: InputBar(
-                  controller: _textController,
-                  onSubmitText: _handleSubmit,
-                  onVoiceRecorded: _handleVoiceRecorded,
+          if (ref.watch(bubbleEditingProvider) == null)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SafeArea(
+                top: false,
+                left: false,
+                right: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                  child: InputBar(
+                    controller: _textController,
+                    onSubmitText: _handleSubmit,
+                    onVoiceRecorded: _handleVoiceRecorded,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

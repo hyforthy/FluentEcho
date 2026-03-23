@@ -24,6 +24,7 @@ class ConversationEntryDao extends DatabaseAccessor<AppDatabase>
           translatedText: Value(entry.translatedText),
           audioFilePath: Value(entry.audioFilePath),
           savedNoteId: Value(entry.savedNoteId),
+          skipOptimization: Value(entry.skipOptimization),
           createdAt: entry.createdAt.millisecondsSinceEpoch,
         ),
       );
@@ -35,6 +36,7 @@ class ConversationEntryDao extends DatabaseAccessor<AppDatabase>
         translatedText: Value(entry.translatedText),
         audioFilePath: Value(entry.audioFilePath),
         savedNoteId: Value(entry.savedNoteId),
+        skipOptimization: Value(entry.skipOptimization),
       ));
 
   /// Loads entries older than the cursor. For first page, pass
@@ -74,6 +76,7 @@ class ConversationEntryDao extends DatabaseAccessor<AppDatabase>
       translatedText: row.translatedText as String?,
       audioFilePath: row.audioFilePath as String?,
       savedNoteId: row.savedNoteId as int?,
+      skipOptimization: row.skipOptimization as bool? ?? false,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt as int),
     );
   }

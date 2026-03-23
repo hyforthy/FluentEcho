@@ -34,6 +34,8 @@ class AIResultBubble extends ConsumerWidget {
       return _LlmErrorBubble(entry: entry);
     }
 
+    final isSkipped = entry.skipOptimization;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -87,6 +89,7 @@ class AIResultBubble extends ConsumerWidget {
                           _OptimizedSection(
                             text: entry.optimizedText,
                             isStreaming: isStreaming && section == StreamingSection.optimizing,
+                            isSkipped: isSkipped,
                           ),
                           if (entry.translatedText?.isNotEmpty == true ||
                               (isStreaming && section == StreamingSection.translating)) ...[
@@ -218,25 +221,38 @@ class _AiAvatar extends StatelessWidget {
 class _OptimizedSection extends StatelessWidget {
   final String text;
   final bool isStreaming;
+  final bool isSkipped;
 
-  const _OptimizedSection({required this.text, required this.isStreaming});
+  const _OptimizedSection({
+    required this.text,
+    required this.isStreaming,
+    this.isSkipped = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const label = '优化结果';
+    final color = isSkipped ? AppColors.textSecondary : AppColors.primary;
+    final icon = isSkipped ? Icons.text_snippet_outlined : Icons.auto_awesome;
+    final label = isSkipped ? '原文' : '优化结果';
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        const Icon(Icons.auto_awesome, size: 12, color: AppColors.primary),
+        Icon(icon, size: 12, color: color),
         const SizedBox(width: 4),
-        Text(label, style: AppTextStyles.cardLabel.copyWith(color: AppColors.primary)),
+        Text(label, style: AppTextStyles.cardLabel.copyWith(color: color)),
         if (isStreaming) ...[
           const SizedBox(width: 6),
           _StreamingBadge(),
         ],
       ]),
       const SizedBox(height: 4),
-      _StreamingText(text: text, isStreaming: isStreaming, style: AppTextStyles.resultBody),
+      _StreamingText(
+        text: text,
+        isStreaming: isStreaming,
+        style: AppTextStyles.resultBody.copyWith(
+          color: isSkipped ? AppColors.textSecondary : null,
+        ),
+      ),
     ]);
   }
 }
@@ -474,6 +490,7 @@ class _ActionRow extends ConsumerWidget {
                     translatedText: entry.translatedText,
                     detectedLanguage: entry.detectedLanguage.language,
                     confidence: entry.detectedLanguage.confidence,
+                    skipOptimization: entry.skipOptimization,
                   );
                   ref.read(conversationHistoryNotifierProvider.notifier).markSaved(entry.id, noteId);
                   if (entry.audioFilePath != null) {

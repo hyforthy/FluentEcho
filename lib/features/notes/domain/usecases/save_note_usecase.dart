@@ -13,6 +13,7 @@ class SaveNoteUseCase {
     String? translatedText,
     required String detectedLanguage,
     required double confidence,
+    bool skipOptimization = false,
   }) async {
     final now = DateTime.now();
     return _db.notesDao.insert(
@@ -22,6 +23,7 @@ class SaveNoteUseCase {
         translatedText: Value(translatedText),
         detectedLanguage: Value(detectedLanguage),
         detectionConfidence: Value(confidence),
+        skipOptimization: Value(skipOptimization),
         createdAt: Value(now),
         updatedAt: Value(now),
       ),

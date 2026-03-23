@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e) : onHistoryReset = null;
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -102,6 +102,10 @@ class AppDatabase extends _$AppDatabase {
               CREATE INDEX IF NOT EXISTS idx_ce_cursor
               ON conversation_entries (created_at DESC, id ASC);
             ''');
+          }
+          if (from < 6) {
+            await m.addColumn(notes, notes.skipOptimization);
+            await m.addColumn(conversationEntries, conversationEntries.skipOptimization);
           }
         },
       );

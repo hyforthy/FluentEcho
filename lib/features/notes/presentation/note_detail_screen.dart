@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +18,8 @@ import '../../../shared/tts/presentation/providers/tts_notifier.dart';
 import '../../../core/database/app_database.dart';
 import 'providers/note_detail_notifier.dart';
 import 'providers/note_tags_notifier.dart';
+import '../../input/presentation/providers/conversation_history_notifier.dart';
+import 'providers/note_list_notifier.dart';
 
 class NoteDetailScreen extends ConsumerWidget {
   final int noteId;
@@ -128,8 +132,10 @@ void _handleAction(BuildContext context, WidgetRef ref, Note note, _NoteAction a
           ],
         ),
       ).then((confirmed) {
-        if (confirmed == true) {
-          ref.read(deleteNoteUseCaseProvider).call(note.id);
+        if (confirmed == true && context.mounted) {
+          unawaited(ref.read(deleteNoteUseCaseProvider).call(note.id));
+          ref.read(conversationHistoryNotifierProvider.notifier).markUnsavedByNoteId(note.id);
+          ref.invalidate(noteListNotifierProvider);
           context.pop();
         }
       });
@@ -238,9 +244,24 @@ class _OptimizedCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    const Icon(Icons.auto_awesome, size: 13, color: AppColors.primary),
+                    Icon(
+                      note.skipOptimization
+                          ? Icons.text_snippet_outlined
+                          : Icons.auto_awesome,
+                      size: 13,
+                      color: note.skipOptimization
+                          ? AppColors.textSecondary
+                          : AppColors.primary,
+                    ),
                     const SizedBox(width: 4),
-                    Text('优化结果', style: AppTextStyles.cardLabel.copyWith(color: AppColors.primary)),
+                    Text(
+                      note.skipOptimization ? '原文' : '优化结果',
+                      style: AppTextStyles.cardLabel.copyWith(
+                        color: note.skipOptimization
+                            ? AppColors.textSecondary
+                            : AppColors.primary,
+                      ),
+                    ),
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.copy_outlined, size: 18),

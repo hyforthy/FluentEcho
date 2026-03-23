@@ -18,6 +18,7 @@ class SaveAndTagNoteUseCase {
     String? translatedText,
     required String detectedLanguage,
     required double confidence,
+    bool skipOptimization = false,
   }) async {
     final noteId = await _saveNote.call(
       originalText: originalText,
@@ -25,6 +26,7 @@ class SaveAndTagNoteUseCase {
       translatedText: translatedText,
       detectedLanguage: detectedLanguage,
       confidence: confidence,
+      skipOptimization: skipOptimization,
     );
     // Fire-and-forget: auto-tag does not block save confirmation
     unawaited(_autoTag.call(

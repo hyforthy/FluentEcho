@@ -25,6 +25,7 @@ mixin _$ConversationEntry {
   DateTime get createdAt => throw _privateConstructorUsedError;
   bool get isFromVoice => throw _privateConstructorUsedError;
   bool get parseWarning => throw _privateConstructorUsedError;
+  bool get skipOptimization => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
   int? get savedNoteId => throw _privateConstructorUsedError;
 
@@ -51,6 +52,7 @@ abstract class $ConversationEntryCopyWith<$Res> {
       DateTime createdAt,
       bool isFromVoice,
       bool parseWarning,
+      bool skipOptimization,
       String? errorMessage,
       int? savedNoteId});
 
@@ -81,6 +83,7 @@ class _$ConversationEntryCopyWithImpl<$Res, $Val extends ConversationEntry>
     Object? createdAt = null,
     Object? isFromVoice = null,
     Object? parseWarning = null,
+    Object? skipOptimization = null,
     Object? errorMessage = freezed,
     Object? savedNoteId = freezed,
   }) {
@@ -120,6 +123,10 @@ class _$ConversationEntryCopyWithImpl<$Res, $Val extends ConversationEntry>
       parseWarning: null == parseWarning
           ? _value.parseWarning
           : parseWarning // ignore: cast_nullable_to_non_nullable
+              as bool,
+      skipOptimization: null == skipOptimization
+          ? _value.skipOptimization
+          : skipOptimization // ignore: cast_nullable_to_non_nullable
               as bool,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
@@ -161,6 +168,7 @@ abstract class _$$ConversationEntryImplCopyWith<$Res>
       DateTime createdAt,
       bool isFromVoice,
       bool parseWarning,
+      bool skipOptimization,
       String? errorMessage,
       int? savedNoteId});
 
@@ -190,6 +198,7 @@ class __$$ConversationEntryImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? isFromVoice = null,
     Object? parseWarning = null,
+    Object? skipOptimization = null,
     Object? errorMessage = freezed,
     Object? savedNoteId = freezed,
   }) {
@@ -230,6 +239,10 @@ class __$$ConversationEntryImplCopyWithImpl<$Res>
           ? _value.parseWarning
           : parseWarning // ignore: cast_nullable_to_non_nullable
               as bool,
+      skipOptimization: null == skipOptimization
+          ? _value.skipOptimization
+          : skipOptimization // ignore: cast_nullable_to_non_nullable
+              as bool,
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
@@ -255,6 +268,7 @@ class _$ConversationEntryImpl implements _ConversationEntry {
       required this.createdAt,
       this.isFromVoice = false,
       this.parseWarning = false,
+      this.skipOptimization = false,
       this.errorMessage,
       this.savedNoteId});
 
@@ -279,13 +293,16 @@ class _$ConversationEntryImpl implements _ConversationEntry {
   @JsonKey()
   final bool parseWarning;
   @override
+  @JsonKey()
+  final bool skipOptimization;
+  @override
   final String? errorMessage;
   @override
   final int? savedNoteId;
 
   @override
   String toString() {
-    return 'ConversationEntry(id: $id, originalText: $originalText, optimizedText: $optimizedText, translatedText: $translatedText, detectedLanguage: $detectedLanguage, audioFilePath: $audioFilePath, createdAt: $createdAt, isFromVoice: $isFromVoice, parseWarning: $parseWarning, errorMessage: $errorMessage, savedNoteId: $savedNoteId)';
+    return 'ConversationEntry(id: $id, originalText: $originalText, optimizedText: $optimizedText, translatedText: $translatedText, detectedLanguage: $detectedLanguage, audioFilePath: $audioFilePath, createdAt: $createdAt, isFromVoice: $isFromVoice, parseWarning: $parseWarning, skipOptimization: $skipOptimization, errorMessage: $errorMessage, savedNoteId: $savedNoteId)';
   }
 
   @override
@@ -310,6 +327,8 @@ class _$ConversationEntryImpl implements _ConversationEntry {
                 other.isFromVoice == isFromVoice) &&
             (identical(other.parseWarning, parseWarning) ||
                 other.parseWarning == parseWarning) &&
+            (identical(other.skipOptimization, skipOptimization) ||
+                other.skipOptimization == skipOptimization) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
             (identical(other.savedNoteId, savedNoteId) ||
@@ -328,6 +347,7 @@ class _$ConversationEntryImpl implements _ConversationEntry {
       createdAt,
       isFromVoice,
       parseWarning,
+      skipOptimization,
       errorMessage,
       savedNoteId);
 
@@ -352,6 +372,7 @@ abstract class _ConversationEntry implements ConversationEntry {
       required final DateTime createdAt,
       final bool isFromVoice,
       final bool parseWarning,
+      final bool skipOptimization,
       final String? errorMessage,
       final int? savedNoteId}) = _$ConversationEntryImpl;
 
@@ -373,6 +394,8 @@ abstract class _ConversationEntry implements ConversationEntry {
   bool get isFromVoice;
   @override
   bool get parseWarning;
+  @override
+  bool get skipOptimization;
   @override
   String? get errorMessage;
   @override

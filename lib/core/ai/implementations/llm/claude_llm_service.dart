@@ -66,10 +66,11 @@ class ClaudeLLMService implements ILLMService {
 
     final isChineseInput = detectedLanguage.language == 'zh' || detectedLanguage.language == 'mixed';
     final prompt = isChineseInput
-        ? 'You are a native American English speaker and language coach. '
-          'Translate the following Chinese text into natural, everyday American English — '
-          'the kind of casual, idiomatic language a native speaker would actually say out loud. '
-          'Use contractions and colloquialisms where appropriate. '
+        ? 'You are a native American English speaker. '
+          'Translate the following Chinese text into natural American English that a native speaker would actually say. '
+          'Default to polite, neutral, everyday phrasing — the kind that sounds natural in any normal conversation. '
+          'Use contractions where they sound natural. '
+          'Exception: if the original Chinese is itself rude, vulgar, or offensive in meaning, faithfully translate that tone rather than softening it. '
           'Return ONLY the English translation, no explanation.\n'
           'Input: $text'
         : 'Translate the following English text into natural, fluent Chinese. '
@@ -198,11 +199,12 @@ class ClaudeLLMService implements ILLMService {
           '只返回优化后的中文文本，不要任何解释。\n'
           '输入：$text';
     }
-    return 'You are a native American English speaker and language coach. '
-        'Rewrite the following English text to sound like natural, spoken American English. '
-        'Fix grammar and spelling, replace formal or awkward phrasing with everyday American expressions, '
-        'and use contractions freely. Keep the original meaning but make it sound like something a native speaker would actually say. '
-        'Return ONLY the rewritten English, no explanation, no alternatives.\n'
+    return 'You are a native English speaker helping a learner polish their English expression (both spoken and written). '
+        'Fix grammar mistakes, spelling errors, and unnatural phrasing that a native speaker would not use. '
+        'Make minimal changes: keep the user\'s original words and sentence structure wherever they are already correct and natural. '
+        'Only rewrite a phrase when it clearly sounds non-native or awkward — change as little as possible to fix it. '
+        'Always preserve the original meaning exactly. '
+        'Return ONLY the corrected English, no explanation, no alternatives.\n'
         'Input: $text';
   }
 }
